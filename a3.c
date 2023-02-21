@@ -1,16 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_NODES 1000000
-
-
-// Node structure for adjacency list
 typedef struct node {
     int vertex;
     struct node* next;
 } node;
 
-// Graph structure for adjacency list
 typedef struct Graph {
     int num_vertices;
     int* visited;
