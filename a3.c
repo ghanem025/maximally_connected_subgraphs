@@ -1,19 +1,147 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct node {
-    int vertex;
-    struct node* next;
-} node;
+// typedef struct node {
+//     int vertex; // this will be our source node
+//     struct node* next; // this will be our destination node
+// } node;
 
-typedef struct Graph {
-    int num_vertices;
-    int* visited;
-    node** adjList;
-} Graph;
+// typedef struct Graph {
+//     int num_vertices;
+//     int* visited;
+//     node** adjList;
+// } Graph;
 
+
+
+// struct Graph* createGraph(int vertex){
+//     struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+//     graph -> vertex = vertex;
+//     Graph ref;
+//     graph -> array = ()
+// }
+
+
+// A C Program to demonstrate adjacency list
+// representation of graphs
+#include <stdio.h>
+#include <stdlib.h>
+ 
+// A structure to represent an adjacency list node
+struct AdjListNode {
+    int dest;
+    struct AdjListNode* next;
+};
+ 
+// A structure to represent an adjacency list
+struct AdjList {
+    struct AdjListNode* head;
+};
+ 
+// A structure to represent a graph. A graph
+// is an array of adjacency lists.
+// Size of array will be V (number of vertices
+// in graph)
+struct Graph {
+    int V;
+    struct AdjList* array;
+};
+ 
+// A utility function to create a new adjacency list node
+struct AdjListNode* newAdjListNode(int dest)
+{
+    struct AdjListNode* newNode
+        = (struct AdjListNode*)malloc(
+            sizeof(struct AdjListNode));
+    newNode->dest = dest;
+    newNode->next = NULL;
+    return newNode;
+}
+ 
+// A utility function that creates a graph of V vertices
+struct Graph* createGraph(int V)
+{
+    struct Graph* graph
+        = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->V = V;
+ 
+    // Create an array of adjacency lists.  Size of
+    // array will be V
+    graph->array = (struct AdjList*)malloc(
+        V * sizeof(struct AdjList));
+ 
+    // Initialize each adjacency list as empty by
+    // making head as NULL
+    int i;
+    for (i = 0; i < V; ++i)
+        graph->array[i].head = NULL;
+ 
+    return graph;
+}
+ 
+// Adds an edge to an undirected graph
+void addEdge(struct Graph* graph, int src, int dest)
+{
+    // Add an edge from src to dest.  A new node is
+    // added to the adjacency list of src.  The node
+    // is added at the beginning
+    struct AdjListNode* check = NULL;
+    struct AdjListNode* newNode = newAdjListNode(dest);
+ 
+    if (graph->array[src].head == NULL) {
+        newNode->next = graph->array[src].head;
+        graph->array[src].head = newNode;
+    }
+    else {
+ 
+        check = graph->array[src].head;
+        while (check->next != NULL) {
+            check = check->next;
+        }
+        // graph->array[src].head = newNode;
+        check->next = newNode;
+    }
+ 
+    // Since graph is undirected, add an edge from
+    // dest to src also
+    newNode = newAdjListNode(src);
+    if (graph->array[dest].head == NULL) {
+        newNode->next = graph->array[dest].head;
+        graph->array[dest].head = newNode;
+    }
+    else {
+        check = graph->array[dest].head;
+        while (check->next != NULL) {
+            check = check->next;
+        }
+        check->next = newNode;
+    }
+ 
+    // newNode = newAdjListNode(src);
+    // newNode->next = graph->array[dest].head;
+    // graph->array[dest].head = newNode;
+}
+ 
+// A utility function to print the adjacency list
+// representation of graph
+void printGraph(struct Graph* graph)
+{
+    int v;
+    for (v = 0; v < graph->V; ++v) {
+        struct AdjListNode* pCrawl = graph->array[v].head;
+        printf("\n Adjacency list of vertex %d\n head ", v);
+        while (pCrawl) {
+            printf("-> %d", pCrawl->dest);
+            pCrawl = pCrawl->next;
+        }
+        printf("\n");
+    }
+}
 
 int main() {
+
+    int V = 10;
+    struct Graph* graph = createGraph(V);
     // Parse input file to construct graph
     FILE* fp;
     fp = fopen("graph.txt", "r");
@@ -25,11 +153,12 @@ int main() {
     int src, dest;
 
     while (fscanf(fp, "%d %d", &src, &dest) != EOF) {
-         printf("node %d ",src);
-         printf("is going to node %d\n", dest);
+        addEdge(graph, src, dest);
     }
 
     fclose(fp);
+
+    printGraph(graph);
 
     return 0;
 }
