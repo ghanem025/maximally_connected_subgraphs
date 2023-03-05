@@ -9,6 +9,7 @@ int stack[MAX_SIZE], top;
 
 typedef struct node {
     int vertex; // this will be our source node
+    bool visited;
     struct node* next; // this will be our destination node
 } node;
 
@@ -26,37 +27,20 @@ typedef struct Graph {
     node** adjList;
 } Graph;
 
-
-void push(int x){
-    if (top >= MAX_SIZE - 1){
-        printf("\n\tSTACK is over flow\n");
-    }
-    else{
-        top++;
-        stack[top] = x;
-    }
-}
-
-void pop(){
-    if (top <= -1){
-        printf("\n\t Stack is under flow\n");
-    }
-    else{
-        top--;
-    }
-}
-
-void reverse_graph(struct Graph* graph, int src, int dest){
-    struct node* new_node = createNode(src);
-    new_node->next = graph->adjList[dest];
-    graph->adjList[dest] = new_node;
-}
-
 void addEdge( struct Graph* graph, int src, int dest){
-    struct node* new_node = createNode(dest); // create a new node
+    // struct node* new_node = createNode(dest); // create a new node
+    // new_node -> next = graph->adjList[src];
+    // // printf("\na new edge has been added: %d\n", new_node->vertex);
+    // graph->adjList[src] = new_node;
+
+    struct node* new_node = createNode(dest);
     new_node -> next = graph->adjList[src];
-    // printf("\na new edge has been added: %d\n", new_node->vertex);
     graph->adjList[src] = new_node;
+
+    // Add the reverse edge as well
+    new_node = createNode(src);
+    new_node -> next = graph->adjList[dest];
+    graph->adjList[dest] = new_node;
 }
 
 struct Graph* createGraph(int num_vertices){
@@ -73,36 +57,6 @@ struct Graph* createGraph(int num_vertices){
     return graph;
 }
 
-// Fuction to fill the stack
-void set_fill_order(struct Graph *graph, int v, bool visited[], int *stack){
-    visited[v] = true;
-    int i = 0;
-    struct node* temp = graph->adjList[v];
-    while (temp){
-
-        counter++;
-        if (!visited[temp->vertex])
-        {
-            set_fill_order(graph, temp->vertex, visited, stack);
-        }
-        temp = temp->next;
-    }
-    push(v);
-}
-
-// // A recursive function to print DFS starting from v
-// void DFS(struct Graph* g, int v, bool visited[]) {
-//     visited[v] = true;
-//     struct node* temp = g->adjList[v];
-//     while (temp != NULL) {
-//         int adjv = temp->vertex;
-//         if (!visited[adjv]) { // checks if the dest vertex was visited, if it wasn't we call DFS again
-//             DFS(g, adjv, visited); // recursively call DFS
-//         }
-//         temp = temp->next; // temp is assigned to the next vertex
-//     }
-// }
-
 // print out the graph
 void printGraph(struct Graph* graph) {
     for (int i = 0; i < graph->num_vertices; i++) {
@@ -118,109 +72,45 @@ void printGraph(struct Graph* graph) {
 }
 
 
-void DFS(struct Graph* graph, int vertex, int* visited) {
-    visited[vertex] = 1;
-    struct node* adjList =  graph->adjList[vertex];
-    while (adjList != NULL) {
-        counter++;
-        int adjVertex = adjList->vertex;
-        // printf("WE ARE SEARCHING %d\n", adjVertex);
-        if (!visited[adjVertex]) {
-            DFS(graph, adjVertex, visited);
+void DFS(struct Graph* g, int v, bool visited[]) {
+    visited[v] = true;
+    struct node* temp = g->adjList[v];
+    while (temp) {
+        int adjv = temp->vertex;
+        if (!visited[adjv]) { // checks if the dest vertex was visited, if it wasn't we call DFS again
+            counter++;
+            DFS(g, adjv, visited); // recursively call DFS
         }
-        adjList = adjList->next;
+        temp = temp->next; // temp is assigned to the next vertex
     }
+    
 }
 
-int countMaximallyConnectedSubgraphs(struct Graph* graph, struct Graph* reversedGraph) {
-    int numSubgraphs = 0;
-
-    // Step 1: perform DFS on the original graph to obtain a topological ordering of the vertices
-    int* visited = (int*)malloc(graph->num_vertices * sizeof(int));
-    for (int i = 0; i < graph->num_vertices; i++) {
-        visited[i] = 0;
+int countMaximallyConnectedSubgraphs(struct Graph* g) {
+    int numVertices = g->num_vertices;
+    bool visited[numVertices]; 
+    for (int i = 0; i < numVertices; i++) {
+        visited[i] = false; // set all vertices to not visited since we will visit them when we call DFS.
     }
-    for (int i = 0; i < graph->num_vertices; i++) {
-        struct node* temp = graph->adjList[i];
-        if (!visited[i] & temp!=NULL) {
-            DFS(graph, i, visited);
-            numSubgraphs++;
+    int count = 0;
+    for (int i = 0; i < numVertices; i++) {
+        if (!visited[i]) { // we check if a node is connected to another node, if it is we call DFS and increase counter
+            count++;
+            DFS(g, i, visited);
+            //printf("The are %d vertices in this maximally connected subgraph\n", counter);
+            
         }
+        //counter=0;
     }
-
-    //Step 2: perform DFS on the reversed graph to obtain a topological ordering of the vertices
-    for (int i = 0; i < graph->num_vertices; i++) {
-        visited[i] = 0;
-    }
-    for (int i = 0; i < graph->num_vertices; i++) {
-        struct node* temp = reversedGraph->adjList[i];
-        if (!visited[i]) {
-            DFS(reversedGraph, i, visited);
-            numSubgraphs++;
-        }
-    }
-    // freeGraph(reversedGraph);
-
-    free(visited);
-
-    // Step 3: return the number of maximally connected subgraphs
-    return numSubgraphs;
+    return count;
 }
-
-
-
-
-
-// // free the memory we allocated for the graph
-// void freeGraph(struct Graph* graph) {
-//     for (int i = 0; i < graph->num_vertices; i++) {
-//         struct node* temp = graph->adjList[i];
-//         while (temp != NULL) {
-//             struct node* prev = temp;
-//             temp = temp->next;
-//             free(prev); // freeing node
-//         }
-//     }
-//     free(graph->adjList);
-//     free(graph);
-// }
-
-
-
-// DFS function 
-
-
-// int countMaximallyConnectedSubgraphs(struct Graph* g) {
-//     int num_vertices = g->num_vertices;
-//     bool visited[num_vertices]; 
-//     for (int i = 0; i < num_vertices; i++) {
-//         visited[i] = false; // set all vertices to not visited since we will visit them when we call DFS.
-//     }
-//     int count = 0;
-//     for (int i = 0; i < num_vertices; i++) {
-//         struct node* temp = g->adjList[i]; // this helps us check if a node is connected to another node
-//         if (!visited[i] && temp != NULL) { // we check if a node is connected to another node, if it is we call DFS and increase counter
-//             count++;
-//             counter++;
-//             printf("maximally connected subgraph and the root vertext is %d: has ", temp->vertex);
-//             DFS(g, i, visited);
-            
-//             printf("%d vertices\n", counter);
-            
-//         }
-//         counter = 0;
-//     }
-//     return count;
-// }
-
 
 int main() {
-    top = -1;
 
     // Parse input file to construct graph
     FILE* fp;
     FILE* fp2;
-    fp = fopen("graph.txt", "r");
+    fp = fopen("web-Google.txt", "r");
     if (fp == NULL) {
         printf("Error: could not open input file.\n");
         return 1;
@@ -239,8 +129,7 @@ int main() {
     }
     fclose(fp);
 
-    struct Graph* graph = createGraph(max+1);
-    struct Graph* reversedGraph = createGraph(max+1);
+    struct Graph* graph = createGraph(max);
     fp2 = fopen("graph.txt", "r");
     if (fp2 == NULL) {
         printf("Error: could not open input file.\n");
@@ -249,15 +138,15 @@ int main() {
     // printf("the max is %d", max+1);
     while (fscanf(fp2, "%d %d", &src, &dest) != EOF) {
         addEdge(graph, src, dest);
-        addEdge(reversedGraph, dest, src);
     }
 
     printGraph(graph);
     printf("OTHER GRAPH\n");
-    printGraph(reversedGraph);
 
-    int count = countMaximallyConnectedSubgraphs(graph, reversedGraph);
-    printf("there are %d maximally connected subgraphs\n", count - max);
+    int count = countMaximallyConnectedSubgraphs(graph);
+
+    printf("there are %d maximally connected subgraphs\n", count);
+
     return 0;
 }
 
