@@ -3,9 +3,52 @@
 #include <stdbool.h>
 
 #define MAX_SIZE 999999
-int counter = 1;
+int counter = 0;
+int max = 0;
 
-int stack[MAX_SIZE], top;
+struct Stack {
+    int top;
+    unsigned capacity;
+    int* array;
+};
+
+struct Stack* createStack(unsigned capacity) {
+    struct Stack* stack = (struct Stack*)malloc(sizeof(struct Stack));
+    stack->capacity = capacity;
+    stack->top = -1;
+    stack->array = (int*)malloc(stack->capacity * sizeof(int));
+    return stack;
+}
+
+int isEmpty(struct Stack* stack) {
+    return stack->top == -1;
+}
+
+int isFull(struct Stack* stack) {
+    return stack->top == stack->capacity - 1;
+}
+
+void push(struct Stack* stack, int item) {
+    if (isFull(stack)) {
+        return;
+    }
+    stack->array[++stack->top] = item;
+}
+
+int pop(struct Stack* stack) {
+    if (isEmpty(stack)) {
+        return -1;
+    }
+    return stack->array[stack->top--];
+}
+
+int peek(struct Stack* stack) {
+    if (isEmpty(stack)) {
+        return -1;
+    }
+    return stack->array[stack->top];
+}
+
 
 typedef struct node {
     int vertex; // this will be our source node
@@ -28,11 +71,6 @@ typedef struct Graph {
 } Graph;
 
 void addEdge( struct Graph* graph, int src, int dest){
-    // struct node* new_node = createNode(dest); // create a new node
-    // new_node -> next = graph->adjList[src];
-    // // printf("\na new edge has been added: %d\n", new_node->vertex);
-    // graph->adjList[src] = new_node;
-
     struct node* new_node = createNode(dest);
     new_node -> next = graph->adjList[src];
     graph->adjList[src] = new_node;
@@ -71,38 +109,46 @@ void printGraph(struct Graph* graph) {
     }
 }
 
-
-void DFS(struct Graph* g, int v, bool visited[]) {
-    visited[v] = true;
-    struct node* temp = g->adjList[v];
-    while (temp) {
-        int adjv = temp->vertex;
-        if (!visited[adjv]) { // checks if the dest vertex was visited, if it wasn't we call DFS again
-            counter++;
-            DFS(g, adjv, visited); // recursively call DFS
-        }
-        temp = temp->next; // temp is assigned to the next vertex
-    }
+void DFS(struct Graph* graph, int startVertex, int* visited) {
     
+    int stack[MAX_SIZE], top = -1;
+    stack[++top] = startVertex;
+    visited[startVertex] = 1;
+    
+    
+    while (top != -1) {
+        int currentVertex = stack[top--];
+        struct node* adjList = graph->adjList[currentVertex];
+        counter++;
+        while (adjList != NULL) {
+            int adjVertex = adjList->vertex;
+            if (!visited[adjVertex]) {
+                stack[++top] = adjVertex;
+                visited[adjVertex] = 1;
+            }
+            adjList = adjList->next;
+        }
+    }
 }
 
-int countMaximallyConnectedSubgraphs(struct Graph* g) {
-    int numVertices = g->num_vertices;
-    bool visited[numVertices]; 
-    for (int i = 0; i < numVertices; i++) {
-        visited[i] = false; // set all vertices to not visited since we will visit them when we call DFS.
+
+int countMaximallyConnectedSubgraphs(struct Graph* graph) {
+    int numSubgraphs = 0;
+
+    // Step 1: perform DFS on the original graph to obtain a topological ordering of the vertices
+    int* visited = (int*)malloc(graph->num_vertices * sizeof(int));
+    for (int i = 0; i < graph->num_vertices; i++) {
+        visited[i] = 0;
     }
-    int count = 0;
-    for (int i = 0; i < numVertices; i++) {
-        if (!visited[i]) { // we check if a node is connected to another node, if it is we call DFS and increase counter
-            count++;
-            DFS(g, i, visited);
-            //printf("The are %d vertices in this maximally connected subgraph\n", counter);
-            
+    for (int i = 0; i < graph->num_vertices; i++) {
+        if (!visited[i]) {
+            DFS(graph, i, visited);
+            numSubgraphs++;
+            printf("The total vertices for this maximally connected subgraph is %d\n", counter);
+            counter=0;
         }
-        //counter=0;
     }
-    return count;
+    return numSubgraphs;
 }
 
 int main() {
@@ -117,7 +163,6 @@ int main() {
     }
 
     int src, dest;
-    int max;
     while (fscanf(fp, "%d %d", &src, &dest) != EOF) {
         if(max < src || max < dest){
             if(src < dest){
@@ -129,7 +174,7 @@ int main() {
     }
     fclose(fp);
 
-    struct Graph* graph = createGraph(max);
+    struct Graph* graph = createGraph(max+1);
     fp2 = fopen("graph.txt", "r");
     if (fp2 == NULL) {
         printf("Error: could not open input file.\n");
@@ -139,9 +184,6 @@ int main() {
     while (fscanf(fp2, "%d %d", &src, &dest) != EOF) {
         addEdge(graph, src, dest);
     }
-
-    printGraph(graph);
-    printf("OTHER GRAPH\n");
 
     int count = countMaximallyConnectedSubgraphs(graph);
 
