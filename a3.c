@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 int counter = 0;
-int max = 999999;
+int max = 829999;
 int *num_nodes;
 
 
@@ -119,8 +119,6 @@ int countMaximallyConnectedSubgraphs(struct Graph* graph) {
         if (!visited[i] && temp!=NULL) {
             DFS(graph, i, visited);
             numSubgraphs++;
-            // printf("The total vertices for maximally connected subgraph %d is: ", numSubgraphs);
-            // printf("%d\n", counter);
             num_nodes = (int*)realloc(num_nodes, numSubgraphs * sizeof(int));
             num_nodes[numSubgraphs - 1] = counter;
             counter=0;
@@ -130,27 +128,9 @@ int countMaximallyConnectedSubgraphs(struct Graph* graph) {
 }
 
 
-// //Partition Function
-// int partition(int arr[], int low, int high)
-// {
-// 	int pivot = arr[high];
-// 	int i = (low - 1);
-//     int j;
-// 	for (j = low; j <= high - 1; j++) {
-// 		if (arr[j] <= pivot) {
-// 			i++;
-// 			swap(&arr[i], &arr[j]);
-// 		}
-// 	}
-// 	swap(&arr[i + 1], &arr[high]);  
-// 	return (i + 1);
-// }
-
-// Quick Sort function
 void quicksort(int Arr[], int low, int high)
 {
 	if (low < high) {
-		// pi = Partition index
 		int pi = partition(Arr, low, high);
 		quicksort(Arr, low, pi - 1);
 		quicksort(Arr, pi + 1, high);           
@@ -165,38 +145,36 @@ void printArray(int arr[], int size)
 	}
 }
   
-
-
 int main(int argc, char* argv[]) {
     // Parse input file to construct graph
     FILE* fp;
     FILE* fp2;
-    char const* filename = "web-Google.txt";
-    // fp = fopen(filename, "r");
-    // if (fp == NULL) {
-    //     printf("Error: could not open input file.\n");
-    //     return 1;
-    // }
+    char const* filename = "graph2.txt";
+    fp = fopen(filename, "r");
+    if (fp == NULL) {
+        printf("Error: could not open input file.\n");
+        return 1;
+    }
     char c;
     int src, dest;
 
-    // while (fscanf(fp, "%c", &c) == 1) {
-    //     if (c == '#') {
-    //         fscanf(fp, "%*[^\n]\n");
-    //     } else {
-    //         ungetc(c, fp);
-    //         fscanf(fp, "%d %d", &src, &dest);
-    //         if(max < src || max < dest){
-    //             if(src < dest){
-    //                 max = dest;
-    //             }
-    //             else
-    //                 max = src;
-    //         }
-    //     }
-    // }
+    while (fscanf(fp, "%c", &c) == 1) {
+        if (c == '#') {
+            fscanf(fp, "%*[^\n]\n");
+        } else {
+            ungetc(c, fp);
+            fscanf(fp, "%d %d", &src, &dest);
+            if(max < src || max < dest){
+                if(src < dest){
+                    max = dest;
+                }
+                else
+                    max = src;
+            }
+        }
+    }
 
-    // fclose(fp);
+    fclose(fp);
 
     struct Graph* graph = createGraph(max);
     fp2 = fopen(filename, "r");
@@ -214,13 +192,14 @@ int main(int argc, char* argv[]) {
             addEdge(graph, src, dest);
         }
     }
-
+    fclose(fp2);
     int count = countMaximallyConnectedSubgraphs(graph);
 
-    printf("there are %d maximally connected subgraphs\n", count);
-
     quicksort(num_nodes, 0, count-1);
-    printArray(num_nodes, count-1);
+    printArray(num_nodes, count);
+
+    printf("there are %d maximally connected subgraphs\n", count);
+    free(num_nodes);
 
     return 0;
 }
