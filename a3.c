@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 int counter = 0;
-int max = 829999;
+int max = 0;
 int *num_nodes;
-
 
 typedef struct node {
     int vertex; // this will be our source node
@@ -149,7 +148,7 @@ int main(int argc, char* argv[]) {
     // Parse input file to construct graph
     FILE* fp;
     FILE* fp2;
-    char const* filename = "graph2.txt";
+    char const* filename = "web-Google.txt";
     fp = fopen(filename, "r");
     if (fp == NULL) {
         printf("Error: could not open input file.\n");
@@ -176,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     fclose(fp);
 
-    struct Graph* graph = createGraph(max);
+    struct Graph* graph = createGraph(max+1);
     fp2 = fopen(filename, "r");
     if (fp2 == NULL) {
         printf("Error: could not open input file.\n");
