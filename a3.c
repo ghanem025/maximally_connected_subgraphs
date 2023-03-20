@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     // Parse input file to construct graph
     FILE* fp;
     FILE* fp2;
-    char const* filename = "web-Google.txt";
+    char const* filename = "graph.txt";
     fp = fopen(filename, "r");
     if (fp == NULL) {
         printf("Error: could not open input file.\n");
